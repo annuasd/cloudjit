@@ -1,0 +1,29 @@
+{
+ "func_infos": [
+  {
+   "arg_name": [
+    "a",
+    "b"
+   ],
+   "arg_type": [
+    "int",
+    "int"
+   ],
+   "func_name": "sum",
+   "return_type": "int"
+  },
+  {
+   "arg_name": [
+    "a",
+    "b"
+   ],
+   "arg_type": [
+    "float",
+    "float"
+   ],
+   "func_name": "fmul",
+   "return_type": "float"
+  }
+ ],
+ "module_name": "../engines/test/ir.ll"
+}
