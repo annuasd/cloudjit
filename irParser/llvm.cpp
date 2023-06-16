@@ -14,6 +14,7 @@ using namespace ejson;
 
 struct FuncInfo{
     string func_name;
+    string module_name;
     string return_type;
     vector<string> arg_type;
     vector<string> arg_name;
@@ -24,7 +25,7 @@ struct ModuleInfo {
     vector<FuncInfo> func_infos;
 };
 
-AUTO_GEN_NON_INTRUSIVE(FuncInfo, func_name, return_type, arg_type, arg_name)
+AUTO_GEN_NON_INTRUSIVE(FuncInfo, func_name, module_name, return_type, arg_type, arg_name)
 AUTO_GEN_NON_INTRUSIVE(ModuleInfo, module_name, func_infos)
 
 ENABLE_JSON_COUT(ModuleInfo, FuncInfo)
@@ -45,10 +46,12 @@ int main(int argc , char* argv[]) {
     error_code ec;
     unique_ptr<llvm::Module> irModule = parseIRFile(filename, error, *context);
     ModuleInfo module_info;
-    module_info.module_name = irModule->getName().str();
+    string mname = irModule->getName().str();
+    module_info.module_name = mname;
     for(auto &func: *irModule) {
         FuncInfo func_info;
         func_info.func_name = func.getName().str();
+        func_info.module_name = mname;
         llvm::Type *return_type = func.getReturnType();
         func_info.return_type = get_type_name(return_type);
         for(auto arg = func.arg_begin(); arg != func.arg_end(); ++arg) {

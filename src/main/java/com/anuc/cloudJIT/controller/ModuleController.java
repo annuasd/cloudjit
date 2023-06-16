@@ -1,128 +1,94 @@
 package com.anuc.cloudJIT.controller;
 
 import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
-import com.alibaba.fastjson2.annotation.JSONField;
-import com.anuc.cloudJIT.entity.FuncInfo;
+import com.anuc.cloudJIT.entity.ModuleInfo;
+import com.anuc.cloudJIT.entity.responnse.BaseResponse;
+import com.anuc.cloudJIT.entity.responnse.SelectModuleListResponse;
+import com.anuc.cloudJIT.entity.responnse.SelectOneModuleResponse;
+import com.anuc.cloudJIT.service.ModuleInfoService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.io.FileUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 
 @RestController
 public class ModuleController {
+    private ModuleInfoService moduleInfoService;
+    @GetMapping("/userDir")
+    String userDir() {
+        return System.getProperty("user.dir");
+    }
     @GetMapping("/")
     String home() {
         return  System.getProperty("user.home");
     }
-
-    @PostMapping("/upload")
+    @Autowired
+    public void setModuleInfoService(ModuleInfoService moduleInfoService) {
+        this.moduleInfoService = moduleInfoService;
+    }
+    @PostMapping("/module")
     String uploadFile(MultipartFile f, HttpServletRequest request) throws IOException {
+        BaseResponse rep = new BaseResponse();
         String userDir = System.getProperty("user.dir");
         String fileName = f.getOriginalFilename();
         File dir = new File(userDir + "/engines/" + fileName.split("\\.")[0]);
         if(dir.exists()) {
-           return "该文件已经存在，上传失败！";
+            rep.setStatus(1);
+            rep.setMessage("该文件已经存在于目录中，上传失败");
+            return JSON.toJSONString(rep);
+        }
+        if(moduleInfoService.selectModuleInfoByName(fileName.split("\\.")[0]) != null) {
+            rep.setStatus(1);
+            rep.setMessage("该文件已经存在于数据库中，发生错误");
+            return JSON.toJSONString(rep);
         }
         dir.mkdir();
         File file = new File(dir + "/" + fileName);
         f.transferTo(file);
         System.out.println(file.getPath());
-        return "上传成功！";
+        ModuleInfo info = new ModuleInfo();
+        info.setName(fileName.split("\\.")[0]);
+        moduleInfoService.insertModuleInfo(info);
+        rep.setMessage("上传成功");
+        return JSON.toJSONString(rep);
     }
 
-    @PostMapping("/parse")
-    String parse(String name) throws IOException, InterruptedException {
-        class Module {
-            @JSONField(name = "module_name")
-            String moduleName;
-            @JSONField(name = "func_infos")
-            ArrayList<FuncInfo> funcInfos;
-            public String getModuleName() {
-                return moduleName;
-            }
-            public void setModuleName(String moduleName) {
-                this.moduleName = moduleName;
-            }
-            public ArrayList<FuncInfo> getFuncInfos() {
-                return funcInfos;
-            }
-            public void setFuncInfos(ArrayList<FuncInfo> funcInfos) {
-                this.funcInfos = funcInfos;
-            }
 
-            @Override
-            public String toString() {
-                return "Module{" +
-                        "moduleName='" + moduleName + '\'' +
-                        ", funcInfos=" + funcInfos +
-                        '}';
-            }
+    @DeleteMapping("/module/{name}")
+    String delete(@PathVariable String name) throws IOException {
+        BaseResponse rep = new BaseResponse();
+        int row = moduleInfoService.deleteModuleInfoByName(name);
+        if(row == 0) {
+            rep.setStatus(1);
+            rep.setMessage("从数据库中删除模块失败");
         }
-        String userDir =  System.getProperty("user.dir");
-        String enginesDir = userDir + "/engines/" + name;
-        File dir = new File(enginesDir);
+        String filePath =  System.getProperty("user.dir") +  "/engines/" + name;
+        File dir = new File(filePath);
         if(!dir.exists()) {
-            return "源文件不存在，无法解析！";
+            rep.setStatus(1);
+            rep.setMessage("该文件不存在于目录中，删除失败");
+            return JSON.toJSONString(rep);
         }
-        String sourceFileName = name + ".c";
-        ProcessBuilder clang = new ProcessBuilder("clang", "-S", "-emit-llvm",
-                "-fno-discard-value-names",
-                "-o", "ir.ll", sourceFileName);
-        clang.directory(dir);
-        Process clangProcess = clang.start();
-        InputStream inputStream = clangProcess.getInputStream();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-        int exitCode = clangProcess.waitFor();
-        if(exitCode != 0)  return "文件编译失败";
-        ProcessBuilder irParser = new ProcessBuilder("./irparser", "../engines/"+ name +"/ir.ll");
-        irParser.directory(new File(userDir + "/irParser"));
-        Process parseProcess = irParser.start();
-        exitCode = parseProcess.waitFor();
-        if(exitCode != 0) return "解析失败";
-        String filePath = userDir + "/module.json";
-        String jsonStr = FileUtils.readFileToString(new File(filePath), StandardCharsets.UTF_8);
-        JSONObject jsonObject = JSON.parseObject(jsonStr);
-        Module module = jsonObject.toJavaObject(Module.class);
-        System.out.println(module.toString());
-        return jsonObject.toString();
+        FileUtils.forceDelete(dir);
+        return JSON.toJSONString(rep);
     }
 
-
-    @PostMapping("/run")
-    //String moduleName, @RequestBody FuncInfo funcInfo
-    String run(String moduleName, String funcName, String funcType, String funcArgs) throws IOException, InterruptedException {
-        String userDir = System.getProperty("user.dir");
-        String dir = userDir + "/jit";
-        File workFile = new File(dir);
-        ProcessBuilder engineCompiler = new ProcessBuilder();
-        engineCompiler.directory(workFile);
-        engineCompiler.command("./compiler.sh", "exe", funcType, funcArgs);
-        Process process1 = engineCompiler.start();
-        int exitCode = process1.waitFor();
-        if(exitCode == 0) {
-            String sourceFilePath =  "../engines/" + moduleName + "/ir.ll";
-            ProcessBuilder functionRun = new ProcessBuilder();
-            functionRun.directory(workFile);
-            System.out.println(sourceFilePath);
-            functionRun.command("./exe",  funcName, sourceFilePath);
-            Process process2 = functionRun.start();
-            exitCode = process2.waitFor();
-            String result = FileUtils.readFileToString(new File(userDir + "/result.txt"),
-                    StandardCharsets.UTF_8);
-            return result;
-        }
-        else return "运行失败！";
-
-
+    @GetMapping("/module")
+    String getAllModule() {
+        SelectModuleListResponse rep = moduleInfoService.selectModuleInfoAll();
+        return JSON.toJSONString(rep);
     }
 
+    @GetMapping("/module/{name}")
+    String getModuleByName(@PathVariable String name) {
+        SelectOneModuleResponse srep = moduleInfoService.selectModuleInfoByName(name);
+        if(srep == null) {
+            return JSON.toJSONString(new BaseResponse());
+        }
+        return JSON.toJSONString(srep);
+    }
 
 }

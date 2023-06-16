@@ -2,14 +2,13 @@
  "func_infos": [
   {
    "arg_name": [
-    "a",
-    "b"
+    "i"
    ],
    "arg_type": [
-    "int",
-    "int"
+    "double"
    ],
-   "func_name": "sum",
+   "func_name": "w",
+   "module_name": "../engines/l/ir.ll",
    "return_type": "int"
   },
   {
@@ -18,12 +17,13 @@
     "b"
    ],
    "arg_type": [
-    "float",
+    "int",
     "float"
    ],
-   "func_name": "fmul",
-   "return_type": "float"
+   "func_name": "sum",
+   "module_name": "../engines/l/ir.ll",
+   "return_type": "double"
   }
  ],
- "module_name": "../engines/test/ir.ll"
+ "module_name": "../engines/l/ir.ll"
 }
