@@ -32,26 +32,16 @@ struct ModuleEngine {
         SMDiagnostic error;
         std::error_code ec;
         std::unique_ptr<Module> module = parseIRFile(fileName, error, *context);
-        module->print(outs(), nullptr);
         ThreadSafeModule irModule = ThreadSafeModule(std::move(module), std::move(context));
         engine = exitOnError(LLLazyJITBuilder().create());
         exitOnError(engine->addIRModule(std::move(irModule)));
     }
-    void FunctionEngineRegister(FunctionEngineBase *feg, FunctionEngineBase *rest...) {
-        FunctionEngineRegister(feg);
-        FunctionEngineRegister(feg);
 
-    }
     void FunctionEngineRegister(FunctionEngineBase *feg) {
         functionEngines.insert({feg->name, std::any(feg) });
         feg->me = this;
     }
 
-    std::any GetFunctionEngine(std::string name) {
-        auto it = functionEngines.find(name);
-        if(it == functionEngines.end()) return std::any{};
-        return it->second;
-    }
 
 };
 

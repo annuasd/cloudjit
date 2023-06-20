@@ -1,38 +1,25 @@
 {
+ "correct": true,
+ "description": "",
  "func_infos": [
   {
-   "arg_name": [
-    "a",
-    "b"
-   ],
-   "arg_type": [
-    "int",
-    "int"
-   ],
+   "func_args": "int a, int b",
    "func_name": "sum",
-   "module_name": "../engines/test/ir.ll",
+   "module_name": "test",
    "return_type": "int"
   },
   {
-   "arg_name": [
-    "a",
-    "b"
-   ],
-   "arg_type": [
-    "float",
-    "float"
-   ],
+   "func_args": "float a, float b",
    "func_name": "fmul",
-   "module_name": "../engines/test/ir.ll",
+   "module_name": "test",
    "return_type": "float"
   },
   {
-   "arg_name": [],
-   "arg_type": [],
+   "func_args": "",
    "func_name": "t",
-   "module_name": "../engines/test/ir.ll",
+   "module_name": "test",
    "return_type": "int"
   }
  ],
- "module_name": "../engines/test/ir.ll"
+ "module_name": "test"
 }

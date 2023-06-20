@@ -4,8 +4,8 @@ import com.anuc.cloudJIT.dao.ModuleInfoDao;
 import com.anuc.cloudJIT.entity.FuncInfo;
 import com.anuc.cloudJIT.entity.ModuleInfo;
 import com.anuc.cloudJIT.entity.responnse.SelectModuleListResponse;
-import com.anuc.cloudJIT.entity.responnse.SelectOneModuleResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,32 +32,29 @@ public class ModuleInfoService {
        return moduleInfoDao.insert(moduleInfo);
     }
 
-    public SelectOneModuleResponse selectModuleInfoByName(String name) {
+    public ModuleInfo selectModuleInfoByName(String name) {
         LambdaQueryWrapper<ModuleInfo> lqw = new LambdaQueryWrapper<>();
         lqw.eq(ModuleInfo::getName, name);
-        if(moduleInfoDao.selectOne(lqw) == null) {
+        ModuleInfo moduleInfo = moduleInfoDao.selectOne(lqw);
+        if(moduleInfo == null) {
             return null;
         }
         List<FuncInfo> funcInfos =  funcInfoService.selectFuncInfoByModule(name);
-        SelectOneModuleResponse msr = new SelectOneModuleResponse();
-        msr.setFuncInfos(funcInfos);
-        msr.setName(name);
-        return msr;
+        moduleInfo.setFuncInfos(funcInfos);
+        return moduleInfo;
     }
 
-    public SelectModuleListResponse selectModuleInfoAll() {
+    public  List<ModuleInfo> selectModuleInfoAll() {
         List<ModuleInfo> moduleInfos = moduleInfoDao.selectList(null);
-        ArrayList<SelectOneModuleResponse> arrayList = new ArrayList<>();
+        ArrayList<ModuleInfo> arrayList = new ArrayList<>();
         for(ModuleInfo moduleInfo: moduleInfos) {
-            SelectOneModuleResponse msr = new SelectOneModuleResponse();
             List<FuncInfo> funcInfos =  funcInfoService.selectFuncInfoByModule(moduleInfo.getName());
-            msr.setName(moduleInfo.getName());
-            msr.setFuncInfos(funcInfos);
-            arrayList.add(msr);
+            moduleInfo.setFuncInfos(funcInfos);
+            arrayList.add(moduleInfo);
         }
         SelectModuleListResponse smlr = new SelectModuleListResponse();
-        smlr.setModuleResponses(arrayList);
-        return smlr;
+        smlr.setModuleInfos(arrayList);
+        return moduleInfos;
     }
 
     public int deleteModuleInfoByName(String name) {
@@ -66,8 +63,16 @@ public class ModuleInfoService {
         return moduleInfoDao.delete(lqw);
     }
 
-
-
+    public int setModuleCorrectByName(String name, boolean j) {
+        LambdaUpdateWrapper<ModuleInfo> luw = new LambdaUpdateWrapper<>();
+        luw.eq(ModuleInfo::getName, name).set(ModuleInfo::getCorrect, j);
+        return moduleInfoDao.update(null, luw);
+    }
+    public int updateModuleDescriptionByName(String name, String description) {
+        LambdaUpdateWrapper<ModuleInfo> luw = new LambdaUpdateWrapper<>();
+        luw.eq(ModuleInfo::getName, name).set(ModuleInfo::getDescription, description);
+        return moduleInfoDao.update(null, luw);
+    }
 
 
 }

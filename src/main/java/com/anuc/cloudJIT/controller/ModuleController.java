@@ -7,21 +7,26 @@ import com.anuc.cloudJIT.entity.responnse.FileUpLoadResponse;
 import com.anuc.cloudJIT.entity.responnse.SelectModuleListResponse;
 import com.anuc.cloudJIT.entity.responnse.SelectOneModuleResponse;
 import com.anuc.cloudJIT.service.ModuleInfoService;
+import com.fasterxml.jackson.databind.ser.Serializers;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 @CrossOrigin
 @RestController
 public class ModuleController {
     private ModuleInfoService moduleInfoService;
+    @Autowired
+    public void setModuleInfoService(ModuleInfoService moduleInfoService) {
+        this.moduleInfoService = moduleInfoService;
+    }
+
+
     @GetMapping("/userDir")
     String userDir() {
         return System.getProperty("user.dir");
@@ -30,13 +35,9 @@ public class ModuleController {
     String home() {
         return  System.getProperty("user.home");
     }
-    @Autowired
-    public void setModuleInfoService(ModuleInfoService moduleInfoService) {
-        this.moduleInfoService = moduleInfoService;
-    }
 
     @PostMapping("/module")
-    String uploadFile(MultipartFile f, HttpServletRequest request) throws IOException {
+    String uploadFile(MultipartFile f, String description, HttpServletRequest request) throws IOException {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(f.getInputStream()));
         FileUpLoadResponse fulr = new FileUpLoadResponse();
         BaseResponse rep = new BaseResponse();
@@ -59,6 +60,7 @@ public class ModuleController {
         System.out.println(file.getPath());
         ModuleInfo info = new ModuleInfo();
         info.setName(fileName.split("\\.")[0]);
+        info.setDescription(description);
         moduleInfoService.insertModuleInfo(info);
         fulr.setMessage("上传成功");
         ArrayList<String> content = new ArrayList<>();
@@ -67,8 +69,10 @@ public class ModuleController {
             content.add(line);
         }
         fulr.setFileContent(content);
+        fulr.setDescription(description);
         return JSON.toJSONString(fulr);
     }
+
 
 
     @DeleteMapping("/module/{name}")
@@ -92,17 +96,31 @@ public class ModuleController {
 
     @GetMapping("/module")
     String getAllModule() {
-        SelectModuleListResponse rep = moduleInfoService.selectModuleInfoAll();
+        SelectModuleListResponse rep = new SelectModuleListResponse();
+        rep.setModuleInfos(moduleInfoService.selectModuleInfoAll());
         return JSON.toJSONString(rep);
     }
 
     @GetMapping("/module/{name}")
     String getModuleByName(@PathVariable String name) {
-        SelectOneModuleResponse srep = moduleInfoService.selectModuleInfoByName(name);
+        SelectOneModuleResponse srep = new SelectOneModuleResponse();
+        srep.setModuleInfo(moduleInfoService.selectModuleInfoByName(name));
         if(srep == null) {
             return JSON.toJSONString(new BaseResponse());
         }
         return JSON.toJSONString(srep);
+    }
+
+    @PutMapping("/module/{name}")
+    String updateModuleByName(String description, @PathVariable String name) {
+        BaseResponse br = new BaseResponse();
+        int i = moduleInfoService.updateModuleDescriptionByName(name, description);
+        if(i != 0) br.setMessage("更新成功");
+        else {
+            br.setStatus(1);
+            br.setMessage("更新失败");
+        }
+        return JSON.toJSONString(br);
     }
 
     @GetMapping("file/{name}")
@@ -119,12 +137,13 @@ public class ModuleController {
         BufferedReader reader = new BufferedReader(new FileReader(dir));
         String line;
         ArrayList<String> content = new ArrayList<>();
-
         while ((line = reader.readLine()) != null) {
             System.out.println(line);
             content.add(line);
         }
+        ModuleInfo moduleInfo = moduleInfoService.selectModuleInfoByName(name);
         fulr.setFileContent(content);
+        fulr.setDescription(moduleInfo.getDescription());
         return JSON.toJSONString(fulr);
     }
 

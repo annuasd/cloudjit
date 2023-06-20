@@ -1,0 +1,1 @@
+./compiler.sh '/Users/niuyibo/Desktop/cloudjit/jit' t 'int()' 'false' 

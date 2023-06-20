@@ -1,4 +1,2 @@
-#-DFUNC_TYPE=int\(int\,int\) -DFUNC_PARAM=12\,5
-cmake -B build -DEXE_NAME=$1 -DFUNC_TYPE=$2 -DFUNC_PARAM=$3
+cmake -B build -DEXE_DIR=$1 -DEXE_NAME=$2 -DFUNC_TYPE=$3 -DNULL_ARG=$4 -DARG_TYPE=$5 -DARG_INDEX=$6 
 cmake --build build
-rm -rf build

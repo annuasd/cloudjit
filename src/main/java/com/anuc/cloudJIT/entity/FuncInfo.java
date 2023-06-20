@@ -1,6 +1,5 @@
 package com.anuc.cloudJIT.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -13,10 +12,5 @@ public class FuncInfo {
     private String funcName;
     private String returnType;
     private String moduleName;
-    @TableField(exist = false)
-    private String[] argType;
-    @TableField(exist = false)
-    private String[] argName;
-    @TableField(exist = false)
-    private ArgInfo[] args;
+    private Boolean init;
 }
