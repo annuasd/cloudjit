@@ -3,17 +3,22 @@ package com.anuc.cloudJIT.controller;
 import com.alibaba.fastjson2.JSON;
 import com.anuc.cloudJIT.entity.ModuleInfo;
 import com.anuc.cloudJIT.entity.responnse.BaseResponse;
+import com.anuc.cloudJIT.entity.responnse.FileUpLoadResponse;
 import com.anuc.cloudJIT.entity.responnse.SelectModuleListResponse;
 import com.anuc.cloudJIT.entity.responnse.SelectOneModuleResponse;
 import com.anuc.cloudJIT.service.ModuleInfoService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 
+@CrossOrigin
 @RestController
 public class ModuleController {
     private ModuleInfoService moduleInfoService;
@@ -29,8 +34,11 @@ public class ModuleController {
     public void setModuleInfoService(ModuleInfoService moduleInfoService) {
         this.moduleInfoService = moduleInfoService;
     }
+
     @PostMapping("/module")
     String uploadFile(MultipartFile f, HttpServletRequest request) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(f.getInputStream()));
+        FileUpLoadResponse fulr = new FileUpLoadResponse();
         BaseResponse rep = new BaseResponse();
         String userDir = System.getProperty("user.dir");
         String fileName = f.getOriginalFilename();
@@ -52,8 +60,14 @@ public class ModuleController {
         ModuleInfo info = new ModuleInfo();
         info.setName(fileName.split("\\.")[0]);
         moduleInfoService.insertModuleInfo(info);
-        rep.setMessage("上传成功");
-        return JSON.toJSONString(rep);
+        fulr.setMessage("上传成功");
+        ArrayList<String> content = new ArrayList<>();
+        String line;
+        while((line = bufferedReader.readLine()) != null) {
+            content.add(line);
+        }
+        fulr.setFileContent(content);
+        return JSON.toJSONString(fulr);
     }
 
 
@@ -89,6 +103,29 @@ public class ModuleController {
             return JSON.toJSONString(new BaseResponse());
         }
         return JSON.toJSONString(srep);
+    }
+
+    @GetMapping("file/{name}")
+    String getFile(@PathVariable String name) throws IOException {
+        FileUpLoadResponse fulr = new FileUpLoadResponse();
+        BaseResponse rep = new BaseResponse();
+        String filePath =  System.getProperty("user.dir") +  "/engines/" + name + "/" + name +".c";
+        File dir = new File(filePath);
+        if(!dir.exists()) {
+            rep.setStatus(1);
+            rep.setMessage("该文件不存在于目录中");
+            return JSON.toJSONString(rep);
+        }
+        BufferedReader reader = new BufferedReader(new FileReader(dir));
+        String line;
+        ArrayList<String> content = new ArrayList<>();
+
+        while ((line = reader.readLine()) != null) {
+            System.out.println(line);
+            content.add(line);
+        }
+        fulr.setFileContent(content);
+        return JSON.toJSONString(fulr);
     }
 
 }

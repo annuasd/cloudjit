@@ -5,6 +5,6 @@ import lombok.Data;
 
 import java.util.List;
 @Data
-public class SelectModuleListResponse {
+public class SelectModuleListResponse extends BaseResponse  {
     List<SelectOneModuleResponse> moduleResponses;
 }

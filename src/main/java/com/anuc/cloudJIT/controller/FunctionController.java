@@ -1,18 +1,22 @@
 package com.anuc.cloudJIT.controller;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.anuc.cloudJIT.entity.ArgInfo;
 import com.anuc.cloudJIT.entity.FuncInfo;
 import com.anuc.cloudJIT.entity.responnse.BaseResponse;
 import com.anuc.cloudJIT.entity.responnse.SelectOneModuleResponse;
 import com.anuc.cloudJIT.service.FuncInfoService;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+
+@CrossOrigin
 @RestController
 public class FunctionController {
     private FuncInfoService funcInfoService;
@@ -63,11 +67,17 @@ public class FunctionController {
         jsonObject.put("module_name", moduleName);
         for(FuncInfo info: funcInfos) {
             String args = new String();
+            ArrayList<ArgInfo> argInfos = new ArrayList<>();
             for(int i = 0; i < info.getArgName().length; ++i) {
                 args = args + info.getArgType()[i] + " " + info.getArgName()[i];
                 if(i != info.getArgName().length - 1) args = args + ", ";
+                ArgInfo argInfo = new ArgInfo();
+                argInfo.setType(info.getArgType()[i]);
+                argInfo.setName(info.getArgName()[i]);
+                argInfos.add(argInfo);
             }
             info.setFuncArgs(args);
+            info.setArgs(argInfos.toArray(new ArgInfo[info.getArgName().length]));
             info.setModuleName(moduleName);
             funcInfoService.insertFuncInfo(info);
         }
@@ -77,9 +87,7 @@ public class FunctionController {
         jsonObject.put("func_infos", funcInfos);
         return JSON.toJSONString(mr);
     }
-
     @PutMapping("/function")
-        //String moduleName, @RequestBody FuncInfo funcInfo
     String run(String moduleName, String funcName, String funcType, String funcArgs) throws IOException, InterruptedException {
         String userDir = System.getProperty("user.dir");
         String dir = userDir + "/jit";
@@ -103,4 +111,22 @@ public class FunctionController {
         }
         else return "运行失败！";
     }
+
+    @GetMapping("/function/{mname}/{fname}")
+    String selectAllFunction(@PathVariable String mname, @PathVariable String fname) {
+        List<FuncInfo> funcInfos = funcInfoService.selectFuncInfoByModule(mname, fname);
+        SelectOneModuleResponse res = new SelectOneModuleResponse();
+        res.setFuncInfos(funcInfos);
+        return JSON.toJSONString(res);
+    }
+    @GetMapping("/function/{name}")
+    String selectFunctionByName(@PathVariable String name) {
+        List<FuncInfo> funcInfos = funcInfoService.selectFuncInfoByName(name);
+        SelectOneModuleResponse res = new SelectOneModuleResponse();
+        res.setFuncInfos(funcInfos);
+        return JSON.toJSONString(res);
+    }
+
+
+
 }

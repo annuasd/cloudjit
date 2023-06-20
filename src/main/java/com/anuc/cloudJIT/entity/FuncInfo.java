@@ -17,4 +17,6 @@ public class FuncInfo {
     private String[] argType;
     @TableField(exist = false)
     private String[] argName;
+    @TableField(exist = false)
+    private ArgInfo[] args;
 }

@@ -14,9 +14,23 @@ public class FuncInfoService {
     @Autowired
     public void setFuncInfoDao(FuncInfoDao funcInfoDao) { this.funcInfoDao = funcInfoDao; }
 
+    public List<FuncInfo> selectFuncInfoByModule(String moduleName, String funcName) {
+        LambdaQueryWrapper<FuncInfo> lqw = new LambdaQueryWrapper<>();
+        lqw.eq(FuncInfo::getModuleName, moduleName).eq(FuncInfo::getFuncName, funcName);
+        List<FuncInfo> result = funcInfoDao.selectList(lqw);
+        return result;
+    }
+
     public List<FuncInfo> selectFuncInfoByModule(String moduleName) {
         LambdaQueryWrapper<FuncInfo> lqw = new LambdaQueryWrapper<>();
         lqw.eq(FuncInfo::getModuleName, moduleName);
+        List<FuncInfo> result = funcInfoDao.selectList(lqw);
+        return result;
+    }
+
+    public List<FuncInfo> selectFuncInfoByName(String name) {
+        LambdaQueryWrapper<FuncInfo> lqw = new LambdaQueryWrapper<>();
+        lqw.eq(FuncInfo::getFuncName, name);
         List<FuncInfo> result = funcInfoDao.selectList(lqw);
         return result;
     }
