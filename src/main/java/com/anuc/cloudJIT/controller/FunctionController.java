@@ -3,12 +3,11 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.anuc.cloudJIT.entity.FuncInfo;
 import com.anuc.cloudJIT.entity.ModuleInfo;
-import com.anuc.cloudJIT.entity.responnse.BaseResponse;
-import com.anuc.cloudJIT.entity.responnse.RunResultResponse;
-import com.anuc.cloudJIT.entity.responnse.SelectFunctionListResponse;
-import com.anuc.cloudJIT.entity.responnse.SelectOneModuleResponse;
+import com.anuc.cloudJIT.entity.RunLog;
+import com.anuc.cloudJIT.entity.responnse.*;
 import com.anuc.cloudJIT.service.FuncInfoService;
 import com.anuc.cloudJIT.service.ModuleInfoService;
+import com.anuc.cloudJIT.service.RunLogService;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -17,19 +16,22 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 @CrossOrigin
 @RestController
 public class FunctionController {
     private FuncInfoService funcInfoService;
-    private ModuleInfoService moduleInfoService;
+
+    private RunLogService runLogService;
+
     @Autowired
     public void setFuncInfoService(FuncInfoService funcInfoService) {
         this.funcInfoService = funcInfoService;
     }
     @Autowired
-    public void setModuleInfoService(ModuleInfoService moduleInfoService) { this.moduleInfoService = moduleInfoService; }
+    public void setRunLogService(RunLogService runLogService) { this.runLogService = runLogService; }
 
 
     @PostMapping("/function")
@@ -109,6 +111,15 @@ public class FunctionController {
                     StandardCharsets.UTF_8);
             RunResultResponse rrep = new RunResultResponse();
             rrep.setResult(result);
+            //插入日志中
+            RunLog runLog = new RunLog();
+            Date date = new Date(System.currentTimeMillis());
+            runLog.setDate(date);
+            runLog.setName(moduleName + '/'+ funcName);
+            runLog.setResult(result);;
+            runLog.setArgs(args);
+            runLog.setModuleName(moduleName);
+            runLogService.createRunLog(runLog);
             return JSON.toJSONString(rrep);
         }
     }
@@ -205,6 +216,12 @@ public class FunctionController {
         return JSON.toJSONString(res);
     }
 
-
+    @GetMapping("runlog/{mname}/{fname}")
+    String selectRunlogByName(@PathVariable String mname, @PathVariable String fname) {
+        RunLogListResponse rep = new RunLogListResponse();
+        List<RunLog> runLogs = runLogService.selectRunLogByName(mname + '/' + fname);
+        rep.setRunLogs(runLogs);
+        return JSON.toJSONString(rep);
+    }
 
 }

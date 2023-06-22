@@ -1,1 +1,1 @@
-./compiler.sh '/Users/niuyibo/Desktop/cloudjit/jit' t 'int()' 'false' 
+./compiler.sh '/Users/niuyibo/Desktop/cloudjit/engines/l' w 'int(double)' 'false' '1,double' '1'

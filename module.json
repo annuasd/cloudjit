@@ -3,23 +3,17 @@
  "description": "",
  "func_infos": [
   {
-   "func_args": "int a, int b",
+   "func_args": "double i",
+   "func_name": "w",
+   "module_name": "l",
+   "return_type": "int"
+  },
+  {
+   "func_args": "int a, float b",
    "func_name": "sum",
-   "module_name": "test",
-   "return_type": "int"
-  },
-  {
-   "func_args": "float a, float b",
-   "func_name": "fmul",
-   "module_name": "test",
-   "return_type": "float"
-  },
-  {
-   "func_args": "",
-   "func_name": "t",
-   "module_name": "test",
-   "return_type": "int"
+   "module_name": "l",
+   "return_type": "double"
   }
  ],
- "module_name": "test"
+ "module_name": "l"
 }
