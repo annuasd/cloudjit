@@ -33,7 +33,6 @@ public class FunctionController {
     @Autowired
     public void setRunLogService(RunLogService runLogService) { this.runLogService = runLogService; }
 
-
     @PostMapping("/function")
     String parse(String name) throws IOException, InterruptedException {
         BaseResponse rep = new BaseResponse();
@@ -216,11 +215,22 @@ public class FunctionController {
         return JSON.toJSONString(res);
     }
 
-    @GetMapping("runlog/{mname}/{fname}")
+    @GetMapping("/runlog/{mname}/{fname}")
     String selectRunlogByName(@PathVariable String mname, @PathVariable String fname) {
         RunLogListResponse rep = new RunLogListResponse();
         List<RunLog> runLogs = runLogService.selectRunLogByName(mname + '/' + fname);
         rep.setRunLogs(runLogs);
+        return JSON.toJSONString(rep);
+    }
+
+    @DeleteMapping("/runlog/{mname}/{fname}")
+    String deleteRunlogByName(@PathVariable String mname, @PathVariable String fname){
+        BaseResponse rep = new BaseResponse();
+        int i = runLogService.deleteRunLogByName(mname + '/' + fname);
+        if(i == 0) {
+            rep.setStatus(1);
+            rep.setMessage("日志删除失败");
+        }
         return JSON.toJSONString(rep);
     }
 

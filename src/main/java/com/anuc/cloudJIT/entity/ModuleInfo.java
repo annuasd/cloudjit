@@ -15,6 +15,8 @@ public class ModuleInfo {
     String name;
     String description;
     Boolean correct;
+    String declarations;
+
     @TableField(exist = false)
     List<FuncInfo> funcInfos;
 

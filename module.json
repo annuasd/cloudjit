@@ -1,19 +1,14 @@
 {
  "correct": true,
+ "declarations": "printf ",
  "description": "",
  "func_infos": [
   {
-   "func_args": "double i",
-   "func_name": "w",
-   "module_name": "l",
-   "return_type": "int"
-  },
-  {
-   "func_args": "int a, float b",
+   "func_args": "int a, float b, float c",
    "func_name": "sum",
-   "module_name": "l",
-   "return_type": "double"
+   "module_name": "c",
+   "return_type": "float"
   }
  ],
- "module_name": "l"
+ "module_name": "c"
 }

@@ -2,7 +2,6 @@ package com.anuc.cloudJIT.service;
 
 import com.anuc.cloudJIT.dao.FuncInfoDao;
 import com.anuc.cloudJIT.entity.FuncInfo;
-import com.anuc.cloudJIT.entity.ModuleInfo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import org.springframework.beans.factory.annotation.Autowired;

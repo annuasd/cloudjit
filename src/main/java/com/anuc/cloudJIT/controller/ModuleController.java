@@ -73,8 +73,6 @@ public class ModuleController {
         return JSON.toJSONString(fulr);
     }
 
-
-
     @DeleteMapping("/module/{name}")
     String delete(@PathVariable String name) throws IOException {
         BaseResponse rep = new BaseResponse();
