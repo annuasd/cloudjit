@@ -13,4 +13,6 @@ public class RunLog {
     private String result;
     private String args;
     private String moduleName;
+    private String input;
+    private String output;
 }

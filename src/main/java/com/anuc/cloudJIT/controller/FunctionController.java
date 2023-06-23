@@ -6,18 +6,13 @@ import com.anuc.cloudJIT.entity.ModuleInfo;
 import com.anuc.cloudJIT.entity.RunLog;
 import com.anuc.cloudJIT.entity.responnse.*;
 import com.anuc.cloudJIT.service.FuncInfoService;
-import com.anuc.cloudJIT.service.ModuleInfoService;
 import com.anuc.cloudJIT.service.RunLogService;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @CrossOrigin
 @RestController
@@ -82,7 +77,7 @@ public class FunctionController {
     }
 
     @PutMapping("/engine")
-    String run(String moduleName, String funcName, String args) throws IOException, InterruptedException {
+    String run(String moduleName, String funcName, String args, String input) throws IOException, InterruptedException {
         BaseResponse rep = new BaseResponse();
         String userDir = System.getProperty("user.dir");
         String dir = userDir + "/engines/" + moduleName;
@@ -99,8 +94,32 @@ public class FunctionController {
         Arrays.asList(args.split(" ")).forEach((v) -> commands.add(v) );
         engineRun.directory(workFile);
         engineRun.command(commands);
+
+        //拿不到llvm jit的输出流（好像是llvmjit的问题）
+        //只能找一个管道文件，对进程输出全部重定向到管道文件
+        File outFile = new File(userDir +"/out.txt");
+        engineRun.redirectOutput( outFile );
+
         Process process = engineRun.start();
+        //处理输入输出
+
+
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
+
+        try (BufferedReader reader = new BufferedReader(new StringReader(input))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                writer.write(line);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        writer.flush();
+
+        //查看进程是否正确结束
         int exitCode = process.waitFor();
+
         if(exitCode != 0) {
             rep.setStatus(1);
             rep.setMessage("运行失败");
@@ -109,7 +128,13 @@ public class FunctionController {
             String result = FileUtils.readFileToString(new File(userDir + "/result.txt"),
                     StandardCharsets.UTF_8);
             RunResultResponse rrep = new RunResultResponse();
-            rrep.setResult(result);
+            String outputLine;
+            ArrayList<String> output = new ArrayList<>();
+            BufferedReader br = new BufferedReader(new FileReader(userDir + "/out.txt"));
+            while ((outputLine = br.readLine()) != null) {
+                // 对每一行数据进行处理
+                output.add(outputLine);
+            }
             //插入日志中
             RunLog runLog = new RunLog();
             Date date = new Date(System.currentTimeMillis());
@@ -118,7 +143,12 @@ public class FunctionController {
             runLog.setResult(result);;
             runLog.setArgs(args);
             runLog.setModuleName(moduleName);
+            runLog.setInput(input);
+            runLog.setOutput(FileUtils.readFileToString(new File(userDir + "/out.txt"),
+                    StandardCharsets.UTF_8));
             runLogService.createRunLog(runLog);
+            rrep.setResult(result);
+            rrep.setOutput(output);
             return JSON.toJSONString(rrep);
         }
     }

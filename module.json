@@ -1,14 +1,26 @@
 {
  "correct": true,
- "declarations": "printf ",
+ "declarations": "",
  "description": "",
  "func_infos": [
   {
-   "func_args": "int a, float b, float c",
+   "func_args": "int a, int b",
    "func_name": "sum",
-   "module_name": "c",
+   "module_name": "test",
+   "return_type": "int"
+  },
+  {
+   "func_args": "float a, float b",
+   "func_name": "fmul",
+   "module_name": "test",
    "return_type": "float"
+  },
+  {
+   "func_args": "",
+   "func_name": "t",
+   "module_name": "test",
+   "return_type": "int"
   }
  ],
- "module_name": "c"
+ "module_name": "test"
 }

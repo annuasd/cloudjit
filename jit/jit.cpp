@@ -32,7 +32,7 @@
 
 template <class T>
 T argTrans(char *s, std::string type) {
-  std::cout << type << ": " << s << std::endl;
+  // std::cout << type << ": " << s << std::endl;
   if (type == "int")
     return atoi(s);
   else if (type == "float")
@@ -51,16 +51,17 @@ int main(int argc, char **argv) {
   auto sum = new FunctionEngine<FUNC_TYPE>(STR2(FUNC_NAME));
   eg.FunctionEngineRegister(sum);
   auto func = sum->getFunctionAddr();
-  std::cout << func(FUNC_ARGS_EXPAND) << std::endl;
+  std::cout << "jit进程启动" << std::endl;
+  // std::cout << func(FUNC_ARGS_EXPAND) << std::endl;
 
   std::ofstream outputFile("../../result.txt");
   if (outputFile.is_open()) {
     outputFile << func(FUNC_ARGS_EXPAND);  // 写入信息到文件
     outputFile.close();
-    std::cout << "写入成功！" << std::endl;
+    // std::cout << "写入成功！" << std::endl;
     return 0;
   } else {
-    std::cout << "无法打开文件！" << std::endl;
+    // std::cout << "无法打开文件！" << std::endl;
     return 1;
   }
 }
