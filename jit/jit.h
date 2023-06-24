@@ -5,7 +5,6 @@
 #include <iostream>
 #include <map>
 #include <string>
-#include <tuple>
 
 #include "llvm/ExecutionEngine/Orc/Core.h"
 #include "llvm/ExecutionEngine/Orc/EPCDynamicLibrarySearchGenerator.h"
@@ -50,6 +49,22 @@ struct ModuleEngine {
   void FunctionEngineRegister(FunctionEngineBase *feg) {
     functionEngines.insert({feg->name, std::any(feg)});
     feg->me = this;
+  }
+
+  std::error_code addObjdecFile(std::vector<std::string> const &files) {
+    std::error_code ec;
+    for (auto file : files) {
+      std::string path = "../../jitlib/" + file + ".o";
+      // std::cout << path << std::endl;
+      ErrorOr<std::unique_ptr<MemoryBuffer>> buffer =
+          MemoryBuffer::getFile(path);
+      if (ec = buffer.getError()) {
+        std::cout << "error code: " << ec.value() << std::endl;
+        return ec;
+      }
+      exitOnError(engine->addObjectFile(std::move(buffer.get())));
+    }
+    return ec;
   }
 };
 

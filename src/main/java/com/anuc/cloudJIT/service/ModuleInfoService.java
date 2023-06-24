@@ -74,5 +74,15 @@ public class ModuleInfoService {
         return moduleInfoDao.update(null, luw);
     }
 
+    public int updateModuleLibByName(String name, Boolean isLib) {
+        LambdaUpdateWrapper<ModuleInfo> luw = new LambdaUpdateWrapper<>();
+        luw.eq(ModuleInfo::getName, name).set(ModuleInfo::getIsLib, isLib);
+        return moduleInfoDao.update(null, luw);
+    }
+    public int updateModuleUsesByName(String name, String uses) {
+        LambdaUpdateWrapper<ModuleInfo> luw = new LambdaUpdateWrapper<>();
+        luw.eq(ModuleInfo::getName, name).set(ModuleInfo::getUses, uses);
+        return moduleInfoDao.update(null, luw);
+    }
 
 }

@@ -4,23 +4,11 @@
  "description": "",
  "func_infos": [
   {
-   "func_args": "int a, int b",
-   "func_name": "sum",
-   "module_name": "test",
-   "return_type": "int"
-  },
-  {
-   "func_args": "float a, float b",
-   "func_name": "fmul",
-   "module_name": "test",
-   "return_type": "float"
-  },
-  {
-   "func_args": "",
-   "func_name": "t",
-   "module_name": "test",
+   "func_args": "int n",
+   "func_name": "Fibon1",
+   "module_name": "c",
    "return_type": "int"
   }
  ],
- "module_name": "test"
+ "module_name": "c"
 }

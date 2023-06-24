@@ -6,6 +6,7 @@ import com.anuc.cloudJIT.entity.ModuleInfo;
 import com.anuc.cloudJIT.entity.RunLog;
 import com.anuc.cloudJIT.entity.responnse.*;
 import com.anuc.cloudJIT.service.FuncInfoService;
+import com.anuc.cloudJIT.service.ModuleInfoService;
 import com.anuc.cloudJIT.service.RunLogService;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +19,8 @@ import java.util.*;
 @RestController
 public class FunctionController {
     private FuncInfoService funcInfoService;
-
     private RunLogService runLogService;
+    private ModuleInfoService moduleInfoService;
 
     @Autowired
     public void setFuncInfoService(FuncInfoService funcInfoService) {
@@ -27,6 +28,8 @@ public class FunctionController {
     }
     @Autowired
     public void setRunLogService(RunLogService runLogService) { this.runLogService = runLogService; }
+    @Autowired
+    public void setModuleInfoService(ModuleInfoService moduleInfoService) { this.moduleInfoService = moduleInfoService; }
 
     @PostMapping("/function")
     String parse(String name) throws IOException, InterruptedException {
@@ -88,10 +91,17 @@ public class FunctionController {
             return JSON.toJSONString(rep);
         }
         ProcessBuilder engineRun = new ProcessBuilder();
+
+        //设置命令
         String exe = "./" + funcName;
         ArrayList<String> commands = new ArrayList<>();
         commands.add(exe);
         Arrays.asList(args.split(" ")).forEach((v) -> commands.add(v) );
+        //设置连接库
+        ModuleInfo moduleInfo = moduleInfoService.selectModuleInfoByName(moduleName);
+        String libs = moduleInfo.getUses();
+        if(libs == null) commands.add(",");
+        else commands.add(libs);
         engineRun.directory(workFile);
         engineRun.command(commands);
 
@@ -102,8 +112,6 @@ public class FunctionController {
 
         Process process = engineRun.start();
         //处理输入输出
-
-
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
 
         try (BufferedReader reader = new BufferedReader(new StringReader(input))) {

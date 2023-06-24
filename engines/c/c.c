@@ -1,9 +1,7 @@
-#include <stdio.h>
-int sum(int a, int b) {
-    printf("hello! cjit!\n");
-    printf("hello! cjit!\n");
-    printf("hello! cjit!\n");
-    scanf("%d", &a);
-    scanf("%d", &b);
-    return a + b;
+int Fibon1(int n) {
+  if (n == 1 || n == 2) {
+    return 1;
+  } else {
+    return Fibon1(n - 1) + Fibon1(n - 2);
+  }
 }

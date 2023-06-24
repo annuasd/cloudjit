@@ -1,4 +1,0 @@
-jit进程启动
-hello! cjit!
-hello! cjit!
-hello! cjit!

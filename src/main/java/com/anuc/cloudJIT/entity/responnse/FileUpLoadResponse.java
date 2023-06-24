@@ -8,4 +8,7 @@ import java.util.ArrayList;
 public class FileUpLoadResponse extends BaseResponse{
     ArrayList<String> fileContent;
     String description;
+    Boolean isLib;
+    String uses;
+    String usedBy;
 }

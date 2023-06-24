@@ -7,7 +7,6 @@ import com.anuc.cloudJIT.entity.responnse.FileUpLoadResponse;
 import com.anuc.cloudJIT.entity.responnse.SelectModuleListResponse;
 import com.anuc.cloudJIT.entity.responnse.SelectOneModuleResponse;
 import com.anuc.cloudJIT.service.ModuleInfoService;
-import com.fasterxml.jackson.databind.ser.Serializers;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +32,7 @@ public class ModuleController {
     }
     @GetMapping("/")
     String home() {
-        return  System.getProperty("user.home");
+        return System.getProperty("user.home");
     }
 
     @PostMapping("/module")
@@ -89,6 +88,14 @@ public class ModuleController {
             return JSON.toJSONString(rep);
         }
         FileUtils.forceDelete(dir);
+        //删除连接库
+        filePath =  System.getProperty("user.dir") +  "/jitlib/" + name + ".o";
+        dir = new File(filePath);
+         moduleInfoService.updateModuleLibByName(name, false);
+        if(!dir.exists()) {
+            return JSON.toJSONString(rep);
+        }
+        FileUtils.forceDelete(dir);
         return JSON.toJSONString(rep);
     }
 
@@ -121,7 +128,7 @@ public class ModuleController {
         return JSON.toJSONString(br);
     }
 
-    @GetMapping("file/{name}")
+    @GetMapping("/file/{name}")
     String getFile(@PathVariable String name) throws IOException {
         FileUpLoadResponse fulr = new FileUpLoadResponse();
         BaseResponse rep = new BaseResponse();
@@ -142,7 +149,65 @@ public class ModuleController {
         ModuleInfo moduleInfo = moduleInfoService.selectModuleInfoByName(name);
         fulr.setFileContent(content);
         fulr.setDescription(moduleInfo.getDescription());
+        fulr.setIsLib(moduleInfo.getIsLib());
+        fulr.setUses(moduleInfo.getUses());
+        fulr.setUsedBy(moduleInfo.getUsedBy());
         return JSON.toJSONString(fulr);
+    }
+
+    @PostMapping("/lib")
+    String createLib(String name ) throws IOException, InterruptedException {
+        BaseResponse rep = new BaseResponse();
+        String userDir = System.getProperty("user.dir");
+        File dir = new File(userDir + "/engines/" + name + '/');
+        String sourceFileName = name + ".c";
+        String targetFileName = "../../jitlib/" + name + ".o";
+        ProcessBuilder clang = new ProcessBuilder();
+        clang.command("clang", "-c", "-o",  targetFileName, sourceFileName);
+        clang.directory(dir);
+        Process clangProcess = clang.start();
+        int exitCode = clangProcess.waitFor();
+        if(exitCode != 0) {
+            rep.setStatus(1);
+            rep.setMessage("文件编译失败");
+            return JSON.toJSONString(rep);
+        } else {
+            moduleInfoService.updateModuleLibByName(name, true);
+            return JSON.toJSONString(rep);
+        }
+    }
+    @DeleteMapping("/lib/{name}")
+    String deleteLib(@PathVariable String name) throws IOException {
+        BaseResponse rep = new BaseResponse();
+        String filePath =  System.getProperty("user.dir") +  "/jitlib/" + name + ".o";
+        File dir = new File(filePath);
+        if(!dir.exists()) {
+            rep.setStatus(1);
+            rep.setMessage("该文件不存在于目录中，删除失败");
+            return JSON.toJSONString(rep);
+        } else {
+            FileUtils.forceDelete(dir);
+            int row = moduleInfoService.updateModuleLibByName(name, false);
+            if(row == 0) {
+                rep.setStatus(1);
+                rep.setMessage("该文件不存在于目录中，删除失败");
+            }
+        }
+
+        return JSON.toJSONString(rep);
+    }
+    @PutMapping("/lib/{name}")
+    String updateModuleUsesByName(@PathVariable String name, String libs) {
+        BaseResponse rep = new BaseResponse();
+        //添加uses
+        int row = moduleInfoService.updateModuleUsesByName(name, libs);
+        //添加usedby
+
+        if(row == 0) {
+            rep.setStatus(1);
+            rep.setMessage("依赖信息更新失败");
+        }
+        return JSON.toJSONString(rep);
     }
 
 }

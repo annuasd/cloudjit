@@ -1,5 +1,5 @@
 #include "jit.h"
-
+#include "sstream"
 #include "autogen.h"
 #ifndef FUNC_TYPE
 #define FUNC_TYPE int(int, float, int)
@@ -30,6 +30,18 @@
 #define ARGS_ASSIGNEXPAND CJIT_ARG2_PASTE(argTrans, ARG_TYPE)
 #endif
 
+std::vector<std::string> split(const std::string& str, char delim) {
+    std::stringstream ss(str);
+    std::string item;
+    std::vector<std::string> elems;
+    while (std::getline(ss, item, delim)) {
+        if (!item.empty()) {
+            elems.push_back(item);
+        }
+    }
+    return elems;
+}
+
 template <class T>
 T argTrans(char *s, std::string type) {
   // std::cout << type << ": " << s << std::endl;
@@ -42,26 +54,27 @@ T argTrans(char *s, std::string type) {
   else if (type == "double")
     return atof(s);
 }
-
+//读入参数，最后一个参数为连接文件，用逗号隔开 例如a,fadsf,fsadfsa
+//如果没有参数，读入一个单独的逗号 ,
 int main(int argc, char **argv) {
   ARGS_ASSIGNEXPAND
   InitializeNativeTarget();
   InitializeNativeTargetAsmPrinter();
   ModuleEngine eg("ir.ll");
+
+  //处理链接参数
+  std::string str = argv[argc-1];
+  std::vector<std::string> objectFiles = split(str, ',');
+  eg.addObjdecFile(objectFiles);
   auto sum = new FunctionEngine<FUNC_TYPE>(STR2(FUNC_NAME));
   eg.FunctionEngineRegister(sum);
   auto func = sum->getFunctionAddr();
-  std::cout << "jit进程启动" << std::endl;
-  // std::cout << func(FUNC_ARGS_EXPAND) << std::endl;
-
   std::ofstream outputFile("../../result.txt");
   if (outputFile.is_open()) {
     outputFile << func(FUNC_ARGS_EXPAND);  // 写入信息到文件
     outputFile.close();
-    // std::cout << "写入成功！" << std::endl;
     return 0;
   } else {
-    // std::cout << "无法打开文件！" << std::endl;
     return 1;
   }
 }
